@@ -1,6 +1,4 @@
-<h1 align="center">🪶 知微 ZhiWei</h1>
-
-<p align="center"><strong>给 AI Agent 的中文互联网深度层 — 知乎 · 微博 · 微信公众号</strong></p>
+<p align="center"><img src="docs/banner.svg" alt="知微 ZhiWei — 给 AI Agent 的中文互联网深度层" width="720"></p>
 
 <p align="center">只读公开内容 · 不用登录态 · 本地运行 · 为 LLM 优化输出</p>
 

@@ -1,0 +1,48 @@
+<svg width="880" height="220" viewBox="0 0 880 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="知微 ZhiWei — 给 AI Agent 的中文互联网深度层">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141631"/>
+      <stop offset="1" stop-color="#2d1b52"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8f7bff"/>
+      <stop offset="1" stop-color="#4dd6c1"/>
+    </linearGradient>
+    <linearGradient id="feather" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f7bff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#4dd6c1" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="880" height="220" rx="16" fill="url(#bg)"/>
+
+  <!-- 背景网格：数据感 -->
+  <g stroke="#ffffff" stroke-opacity="0.04" stroke-width="1">
+    <path d="M0 55 H880 M0 110 H880 M0 165 H880"/>
+    <path d="M176 0 V220 M352 0 V220 M528 0 V220 M704 0 V220"/>
+  </g>
+
+  <!-- 羽毛：知微之轻 -->
+  <g transform="translate(715,22) rotate(15) scale(0.8)" fill="none" stroke="url(#feather)" stroke-width="3" stroke-linecap="round">
+    <path d="M60 10 C 95 55, 95 120, 55 160 C 40 130, 38 60, 60 10 Z" fill="url(#feather)" fill-opacity="0.18"/>
+    <path d="M60 14 C 62 65, 60 120, 56 156"/>
+    <path d="M60 45 C 75 52, 82 62, 86 74 M59 80 C 74 86, 81 96, 84 108 M58 115 C 70 120, 76 128, 78 138"/>
+  </g>
+
+  <!-- 标题 -->
+  <text x="64" y="92" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif" font-size="46" font-weight="700" fill="#ffffff">知微 <tspan font-family="'Segoe UI',Helvetica,Arial,sans-serif" fill="url(#accent)">ZhiWei</tspan></text>
+  <text x="64" y="130" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="20" fill="#c8c6ea">给 AI Agent 的中文互联网深度层</text>
+
+  <!-- 渠道 chips -->
+  <g font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="15">
+    <rect x="64" y="152" width="82" height="32" rx="16" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="105" y="173" text-anchor="middle" fill="#ffffff">知 乎</text>
+    <rect x="158" y="152" width="82" height="32" rx="16" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="199" y="173" text-anchor="middle" fill="#ffffff">微 博</text>
+    <rect x="252" y="152" width="118" height="32" rx="16" fill="#ffffff" fill-opacity="0.10" stroke="#ffffff" stroke-opacity="0.18"/>
+    <text x="311" y="173" text-anchor="middle" fill="#ffffff">微信公众号</text>
+  </g>
+
+  <!-- 底部标语 -->
+  <text x="816" y="196" text-anchor="end" font-family="'PingFang SC','Microsoft YaHei',sans-serif" font-size="13" fill="#8a87b5">只读公开内容 · 本地运行 · CLI + MCP</text>
+</svg>
