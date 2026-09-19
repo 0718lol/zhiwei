@@ -19,6 +19,8 @@ description: 知微 — 给 AI Agent 的中文互联网深度层。知乎热榜/
 | 读一条微博的正文和互动数据 | `zhiwei weibo-post <帖子ID或链接>` |
 | 读一篇公众号文章 | `zhiwei wechat-article <文章URL>` |
 | **快速吸收一篇公众号长文的要点** | `zhiwei wechat-summary <文章URL> --sentences 5` |
+| 记录当前热点（供日后回溯） | `zhiwei snapshot` （建议定时运行） |
+| 看某话题过去的热度/排名演化 | `zhiwei timeline <关键词>` |
 | 某个命令报错了 | `zhiwei doctor` （先跑这个再排查） |
 
 ## 使用约定

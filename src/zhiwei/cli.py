@@ -60,6 +60,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--sentences", type=int, default=5, help="摘要句数(默认5)")
     _add_common(p)
 
+    p = sub.add_parser("snapshot", help="抓取知乎热榜并存入本地快照（时间线地基，建议定时运行）")
+    p.add_argument("--limit", type=int, default=50)
+    _add_common(p)
+
+    p = sub.add_parser("timeline", help="回放某话题在历史快照中的排名/热度演化")
+    p.add_argument("keyword", help="话题关键词（标题模糊匹配）")
+    p.add_argument("--limit", type=int, default=50)
+    _add_common(p)
+
     p = sub.add_parser("doctor", help="各渠道各后端健康检查")
     _add_common(p)
 
@@ -138,6 +147,36 @@ def run(args: argparse.Namespace) -> int:
             out = render(
                 art["title"],
                 [summary.summary_markdown(art["title"], meta_line, s)],
+                data,
+                as_json,
+            )
+        elif args.command == "snapshot":
+            from . import storage
+
+            items, backend = zhihu.hot_list(args.limit)
+            result = storage.save_snapshot(items, backend)
+            data = {"result": result, "items": items}
+            out = render(
+                f"快照已保存 {result['ts']}",
+                [
+                    f"- 本份 {result['saved']} 条，其中 **{result['new']} 条**是上次快照之后新进榜的",
+                    f"- 累计 {result['total_snapshots']} 份快照 / {result['total_rows']} 行，库：{storage.db_path()}",
+                    "",
+                    "让时间线长出价值：用任务计划/cron 每小时跑一次 `zhiwei snapshot`，"
+                    "然后用 `zhiwei timeline <关键词>` 回放演化。",
+                ],
+                data,
+                as_json,
+            )
+        elif args.command == "timeline":
+            from . import storage
+
+            st = storage.stats()
+            rows = storage.timeline(args.keyword, args.limit)
+            data = {"stats": st, "rows": rows}
+            out = render(
+                f"时间线：{args.keyword}",
+                [storage.timeline_markdown(args.keyword, rows, st)],
                 data,
                 as_json,
             )

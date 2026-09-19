@@ -90,6 +90,8 @@ Agent 会自己完成安装、验证、并汇报各渠道状态。
 | ✍️ 微博博文 | `zhiwei weibo-post <id/URL>` | 正文 + 转评赞（评论区 v0.1 不覆盖） |
 | 📰 公众号文章 | `zhiwei wechat-article <URL>` | 标题/作者/时间 + 全文干净 markdown |
 | 🩺 自诊断 | `zhiwei doctor` | 每渠道每后端真实状态、耗时、被拦原因 |
+| ⏱️ 热点快照 | `zhiwei snapshot` | 热榜落本地 SQLite（建议定时运行，时间线数据从今天积累） |
+| 📈 话题时间线 | `zhiwei timeline <关键词>` | 回放某话题历史排名/热度演化（`~/.zhiwei/timeline.db`） |
 
 所有命令支持 `--json`（结构化输出）与 `--limit`。
 
@@ -144,7 +146,7 @@ pip install "zhiwei @ git+https://github.com/0718lol/zhiwei.git" "mcp>=1.2"
 - [ ] 公众号发现与搜索（搜狗通道优先）
 - [ ] 微博评论树（登录态作为用户自供的可选能力引入，含免责与本地存储设计）
 - [ ] 观点聚合 LLM 档打磨：阵营命名质量、分歧图谱、可复现的 prompt 版本管理
-- [ ] 热点时间线（一）：本地 SQLite 快照，持续积累热榜数据
+- [x] v0.2 热点时间线（一）：本地 SQLite 快照 + 话题演化回放（`zhiwei snapshot` / `zhiwei timeline`，每小时定时运行积累数据）
 
 ### 🔭 v0.3+
 
