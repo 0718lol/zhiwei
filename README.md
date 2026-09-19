@@ -4,6 +4,13 @@
 
 <p align="center">只读公开内容 · 不用登录态 · 本地运行 · 为 LLM 优化输出</p>
 
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT"></a>
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="python">
+  <img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="ruff">
+  <img src="https://img.shields.io/badge/MCP-compatible-8A2BE2" alt="mcp">
+</p>
+
 ---
 
 ## 为什么需要知微？
@@ -25,6 +32,45 @@ AI Agent 能帮你写代码、读英文网页——但中文互联网对它几�
 | 📄 **TextRank 摘要** | `zhiwei wechat-summary <URL>` | 公众号长文的抽取式摘要 + 关键数据点（百分比/金额/倍数） |
 
 两个引擎都是**确定性规则、无 LLM 依赖、可离线复现**——确定性的部分做扎实，主观综合留给调用方 agent。这是"半成品哲学"：我们不做黑盒总结，做结构化的思考素材。
+
+## 输出长什么样
+
+**知乎热榜**（发布日真实抓取）：
+
+```markdown
+| # | 话题 | 热度 | 回答数 |
+|---|---|---|---|
+| 1 | [什么东西被发明出来后，莫名其妙地违背了它的用途？](https://www.zhihu.com/question/2083219865272374442) | 852 万热度 | 241 |
+| 2 | [LPL 2026 冒泡赛决赛 iG 3:1 淘汰 JDG 夺得最后一张世界赛门票，如何评价这场比赛？](…) | 694 万热度 | 132 |
+```
+
+**观点聚合**（`zhihu-digest`，演示数据）：
+
+```markdown
+共聚合 4 个回答、11000 赞。焦点关键词：政策、数据
+
+## 👍 支持方 — 2 条（条数 50.0% · 赞数 55.5%）
+> **甲**（5200 赞）：这个政策完全正确，确实是多年来最务实的方案
+
+## 👎 反对方(质疑) — 1 条（条数 25.0% · 赞数 28.2%）
+> **乙**（3100 赞）：我反对这个方案，因为它根本不解决问题，恰恰相反…
+
+## 📊 事实/中立 — 1 条（条数 25.0% · 赞数 16.4%）
+> **丙**（1800 赞）：根据公开资料，2025 年试点城市的统计显示，参与率增长 35%…
+```
+
+配置 `ZHIWEI_LLM_*` 环境变量后，`zhihu-digest --llm` 会追加阵营命名、分歧提炼与总结（失败自动降级为纯规则输出）。
+
+## 生态位：与 Agent Reach / markitdown 的关系
+
+| | [Agent Reach](https://github.com/Panniantong/Agent-Reach) | [markitdown](https://github.com/microsoft/markitdown) | **知微** |
+|---|---|---|---|
+| 定位 | 能力层路由（选型/安装/体检） | 文件 → Markdown | **中文内容深度层** |
+| 覆盖 | Twitter/Reddit/B站/小红书/V2EX… | Office/PDF 等文件 | **知乎/微博/公众号** |
+| 深度加工 | ✗ | ✗ | ✅ 立场图谱 · TextRank 摘要 · 关键数据 |
+| 形态 | CLI + SKILL.md | Python 库 | CLI + MCP（8 工具 + 工作流 prompt） |
+
+三者互补不冲突：Agent Reach 负责"连上"，markitdown 负责"文件"，知微负责"中文内容读透"。
 
 ## 装好即用（一句话安装）
 

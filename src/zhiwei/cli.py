@@ -48,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("zhihu-digest", help="观点聚合：问题高赞回答的立场图谱")
     p.add_argument("target", help="问题 ID 或链接")
     p.add_argument("--answers", type=int, default=10, help="参与聚合的回答数(默认10)")
+    p.add_argument(
+        "--llm",
+        action="store_true",
+        help="用 ZHIWEI_LLM_* 环境变量指定的模型增强聚合(失败自动降级)",
+    )
     _add_common(p)
 
     p = sub.add_parser("wechat-summary", help="公众号文章 → TextRank 摘要 + 关键数据点")
@@ -111,10 +116,18 @@ def run(args: argparse.Namespace) -> int:
             detail, answers, backend, note = zhihu.question(qid, args.answers)
             d = digest.digest(answers)
             m = meta(detail["url"], backend)
-            data = {"meta": m, "digest": d}
-            sections = [digest.digest_markdown(detail["title"], d), "", f"backend: {backend}"]
+            sections = [digest.digest_markdown(detail["title"], d)]
+            llm_note = ""
+            if getattr(args, "llm", False):
+                enh, llm_note = digest.llm_enhance(detail["title"], d)
+                if enh:
+                    sections.insert(1, f"\n## 🤖 LLM 增强\n\n{enh}\n")
+            sections += ["", f"backend: {backend}"]
             if note:
                 sections = [f"> ⚠️ {note}", ""] + sections
+            if llm_note:
+                sections += ["", f"> {llm_note}"]
+            data = {"meta": m, "digest": d, "llm_note": llm_note}
             out = render(f"观点聚合：{detail['title']}", sections, data, as_json)
         elif args.command == "wechat-summary":
             art, backend = wechat.article(args.target)

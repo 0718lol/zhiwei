@@ -79,6 +79,17 @@ def test_summary_textrank():
     assert "TextRank" in md and "关键数据点" in md
 
 
+def test_llm_enhance_safe_fallback(monkeypatch):
+    """未配置 LLM 环境变量时必须安全降级，不影响确定性输出."""
+    for var in ("ZHIWEI_LLM_BASE_URL", "ZHIWEI_LLM_API_KEY", "ZHIWEI_LLM_MODEL"):
+        monkeypatch.delenv(var, raising=False)
+    from zhiwei.digest import digest, llm_enhance
+
+    d = digest(ANSWERS)
+    enh, note = llm_enhance("测试问题", d)
+    assert enh is None and "未配置" in note
+
+
 def test_summary_short_text():
     s = summarize("太短了", n=3)
     assert s["sentences"] == []

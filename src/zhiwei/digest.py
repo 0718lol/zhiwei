@@ -165,3 +165,60 @@ def digest_markdown(question_title: str, d: dict[str, Any]) -> str:
         lines.append("")
     lines += ["---", f"*方法：{d['method']}*"]
     return "\n".join(lines).strip()
+
+
+def llm_enhance(question_title: str, d: dict[str, Any]) -> tuple[str | None, str]:
+    """可选 LLM 增强：用 ZHIWEI_LLM_* 环境变量指定的 OpenAI 兼容端点，
+    对确定性聚合结果做阵营命名、分歧提炼与总结.
+
+    任何失败都安全降级为 (None, 原因)——确定性输出永远不受影响.
+    返回 (增强文本, 说明).
+    """
+    import os
+
+    base = os.environ.get("ZHIWEI_LLM_BASE_URL")
+    key = os.environ.get("ZHIWEI_LLM_API_KEY")
+    model = os.environ.get("ZHIWEI_LLM_MODEL")
+    if not (base and key and model):
+        return None, (
+            "未配置 LLM（需 ZHIWEI_LLM_BASE_URL / ZHIWEI_LLM_API_KEY / ZHIWEI_LLM_MODEL "
+            "环境变量），保持确定性输出"
+        )
+
+    camps = []
+    for name in ("支持", "反对", "事实"):
+        c = d["camps"][name]
+        if c["count"]:
+            reps = "；".join(
+                f"{r['author']}({r['voteup']}赞)：{r['core'][:80]}" for r in c["representatives"]
+            )
+            camps.append(f"- {name} {c['count']} 条 / 赞数占 {c['vote_pct']}%：{reps}")
+    kws = "、".join(w for w, _ in d["keywords"])
+    prompt = (
+        "以下是某知乎问题下高赞回答的确定性观点聚合结果（规则引擎产出）。请用中文：\n"
+        "1. 给每个阵营一个更精准的命名（如「支持方」→「支持派：政策红利论」）；\n"
+        "2. 提炼各阵营的核心分歧点（≤3 条）；\n"
+        "3. 用两句话总结舆论场。\n"
+        "严格基于所给信息，不要编造。\n\n"
+        f"问题：{question_title}\n焦点关键词：{kws}\n" + "\n".join(camps)
+    )
+    try:
+        import httpx
+
+        resp = httpx.post(
+            base.rstrip("/") + "/chat/completions",
+            headers={"Authorization": f"Bearer {key}"},
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3,
+            },
+            timeout=30.0,
+        )
+        resp.raise_for_status()
+        text = (resp.json()["choices"][0]["message"]["content"] or "").strip()
+        if not text:
+            raise ValueError("empty completion")
+        return text, f"LLM 增强成功（{model}）"
+    except Exception as e:  # noqa: BLE001 — 降级是设计行为
+        return None, f"LLM 增强失败({type(e).__name__}: {str(e)[:60]})，保持确定性输出"
