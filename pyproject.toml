@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zhiwei"
+version = "0.1.0"
+description = "知微 — 给 AI Agent 的中文互联网深度层：知乎 · 微博 · 微信公众号 (public content only)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "0718lol" }]
+keywords = ["mcp", "agent", "zhihu", "weibo", "wechat", "llm", "tools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+    "html2text>=2024.2.26",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.2.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+zhiwei = "zhiwei.cli:main"
+zhiwei-mcp = "zhiwei.mcp_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/zhiwei"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live: tests that hit the real network (enable with ZHIWEI_LIVE=1)"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

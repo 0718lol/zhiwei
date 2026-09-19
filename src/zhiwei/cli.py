@@ -1,0 +1,154 @@
+"""CLI —— agent 与人共用的入口。默认输出 markdown，--json 输出结构化数据."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+
+from . import __version__
+from . import digest, summary
+from .channels import wechat, weibo, zhihu
+from .doctor import check_all, report as doctor_report
+from .output import meta, render
+
+
+def _add_common(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--json", action="store_true", help="输出 JSON 而非 markdown")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="zhiwei",
+        description="知微 — 给 AI Agent 的中文互联网深度层 (只读公开内容)",
+    )
+    parser.add_argument("--version", action="version", version=f"zhiwei {__version__}")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("zhihu-hot", help="知乎热榜")
+    p.add_argument("--limit", type=int, default=50)
+    _add_common(p)
+
+    p = sub.add_parser("zhihu-question", help="知乎问题 + 高赞回答")
+    p.add_argument("target", help="问题 ID 或链接")
+    p.add_argument("--answers", type=int, default=5, help="抓取回答数(默认5)")
+    _add_common(p)
+
+    p = sub.add_parser("weibo-hot", help="微博热搜")
+    p.add_argument("--limit", type=int, default=50)
+    _add_common(p)
+
+    p = sub.add_parser("weibo-post", help="微博博文正文")
+    p.add_argument("target", help="帖子 ID 或链接")
+    _add_common(p)
+
+    p = sub.add_parser("wechat-article", help="公众号单篇文章 → markdown")
+    p.add_argument("target", help="文章 URL 或本地 HTML 路径")
+    _add_common(p)
+
+    p = sub.add_parser("zhihu-digest", help="观点聚合：问题高赞回答的立场图谱")
+    p.add_argument("target", help="问题 ID 或链接")
+    p.add_argument("--answers", type=int, default=10, help="参与聚合的回答数(默认10)")
+    _add_common(p)
+
+    p = sub.add_parser("wechat-summary", help="公众号文章 → TextRank 摘要 + 关键数据点")
+    p.add_argument("target", help="文章 URL 或本地 HTML 路径")
+    p.add_argument("--sentences", type=int, default=5, help="摘要句数(默认5)")
+    _add_common(p)
+
+    p = sub.add_parser("doctor", help="各渠道各后端健康检查")
+    _add_common(p)
+
+    return parser
+
+
+def run(args: argparse.Namespace) -> int:
+    as_json = getattr(args, "json", False)
+    try:
+        if args.command == "zhihu-hot":
+            items, backend = zhihu.hot_list(args.limit)
+            m = meta("https://www.zhihu.com/hot", backend)
+            data = {"meta": m, "items": items}
+            out = render(
+                f"知乎热榜 Top {len(items)}",
+                [zhihu.hot_markdown(items), "", f"backend: {backend} · {m['fetched_at']}"],
+                data,
+                as_json,
+            )
+        elif args.command == "zhihu-question":
+            qid = zhihu.parse_question_id(args.target)
+            detail, answers, backend, note = zhihu.question(qid, args.answers)
+            m = meta(detail["url"], backend)
+            data = {"meta": m, "question": detail, "answers": answers}
+            sections = [zhihu.question_markdown(detail, answers), "", f"backend: {backend}"]
+            if note:
+                sections = [f"> ⚠️ {note}", ""] + sections
+            out = render(detail["title"], sections, data, as_json)
+        elif args.command == "weibo-hot":
+            items, backend = weibo.hot_search(args.limit)
+            m = meta("https://weibo.com/hot/search", backend)
+            data = {"meta": m, "items": items}
+            out = render(
+                f"微博热搜 Top {len(items)}",
+                [weibo.hot_markdown(items), "", f"backend: {backend} · {m['fetched_at']}"],
+                data,
+                as_json,
+            )
+        elif args.command == "weibo-post":
+            post, backend = weibo.post(args.target)
+            data = {"meta": meta(post["url"], backend), "post": post}
+            out = render(f"@{post['author']} 的微博", [weibo.post_markdown(post)], data, as_json)
+        elif args.command == "wechat-article":
+            art, backend = wechat.article(args.target)
+            data = {"meta": meta(art["url"], backend), **art}
+            out = render(
+                art["title"],
+                [f"- 公众号: {art['account']} · 发布: {art['publish_time'] or '未知'}", "", art["content"]],
+                data,
+                as_json,
+            )
+        elif args.command == "zhihu-digest":
+            qid = zhihu.parse_question_id(args.target)
+            detail, answers, backend, note = zhihu.question(qid, args.answers)
+            d = digest.digest(answers)
+            m = meta(detail["url"], backend)
+            data = {"meta": m, "digest": d}
+            sections = [digest.digest_markdown(detail["title"], d), "", f"backend: {backend}"]
+            if note:
+                sections = [f"> ⚠️ {note}", ""] + sections
+            out = render(f"观点聚合：{detail['title']}", sections, data, as_json)
+        elif args.command == "wechat-summary":
+            art, backend = wechat.article(args.target)
+            s = summary.summarize(art["content"], args.sentences)
+            m = meta(art["url"], backend)
+            data = {"meta": m, "summary": s, **art}
+            meta_line = f"- 公众号: {art['account']} · 发布: {art['publish_time'] or '未知'} · backend: {backend}"
+            out = render(
+                art["title"],
+                [summary.summary_markdown(art["title"], meta_line, s)],
+                data,
+                as_json,
+            )
+        elif args.command == "doctor":
+            results = check_all()
+            data = {"results": results}
+            out = render("zhiwei doctor", [doctor_report(results)], data, as_json)
+        else:  # pragma: no cover
+            out = f"未知命令 {args.command}"
+        print(out)
+        return 0
+    except Exception as e:  # noqa: BLE001 — CLI 边界，统一给出可读错误
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    # Windows 控制台缺省 GBK，强制 UTF-8 避免 UnicodeEncodeError
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+    args = build_parser().parse_args(argv)
+    return run(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
